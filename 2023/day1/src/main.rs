@@ -1,43 +1,35 @@
 use std::fs;
 
-fn word_to_digit2(word: &String) -> u32 {
-    if word.contains("one") {
-        return 1;
-    }
-    
-    if word.contains("two") {
-        return 2;
-    }
+fn load_file(file_name: &String) -> String {
+    let file_parse = fs::read_to_string(file_name);
 
-    if word.contains("three") {
-        return 3;
+    if file_parse.is_ok() {
+       return file_parse.unwrap(); 
+    } else {
+        panic!("Error reading file.");
     }
+}
 
-    if word.contains("four") {
-        return 4;
-    }
-    
-    if word.contains("five") {
-        return 5;
-    }
-    
-    if word.contains("six") {
-        return 6;
-    }
-    
-    if word.contains("seven") {
-        return 7;
-    }
-    
-    if word.contains("eight") {
-        return 8;
-    }
-    
-    if word.contains("nine") {
-        return 9;
-    }
-
-    return 0;
+fn replace_nums(file: &mut String) {
+    *file = file.replace(
+        "one", "o1e"
+    ).replace(
+        "two", "t2o"
+    ).replace(
+        "three", "t3e"
+    ).replace(
+        "four", "f4r"
+    ).replace(
+        "five", "f5e"
+    ).replace(
+        "six", "s6x"
+    ).replace(
+        "seven", "s7n"
+    ).replace(
+        "eight", "e8t"
+    ).replace(
+        "nine", "n9e"
+    ).to_string(); 
 }
 
 fn digits_to_num(digits: &Vec<u32>) -> u32 {
@@ -52,85 +44,68 @@ fn digits_to_num(digits: &Vec<u32>) -> u32 {
         sum += digits.get(0).unwrap() * 10;
         sum += digits.get(0).unwrap();
     }
-    print!("{}\n", sum);
     return sum;    
 }
 
-fn main() {
-    let file_parse = fs::read_to_string("input.txt");
-    let file: String; 
-    
-    if file_parse.is_ok() {
-       file = file_parse.unwrap(); 
-    } else {
-        panic!("Error reading file.");
-    }
-
-    let lines: Vec<&str> = file.split("\n").collect();
-    let mut chars: Vec<char>; 
-    let mut digits = Vec::<u32>::new();
+fn digits_from_chars(chars: &mut Vec<char>) -> Vec<u32> { 
     let mut dig_parse;
     let mut dig;
-    let mut sum: u32 = 0;
+    let mut digits = Vec::<u32>::new();
 
-    for line in lines {
-       chars = line.chars().collect();
-       for ch in chars {
-           if char::is_numeric(ch) {
-                dig_parse = ch.to_digit(10);
-                
-                if dig_parse.is_some() {
-                    dig = dig_parse.unwrap();
-                    digits.push(dig);
-                } else {
-                    panic!("Error parsing");
-                }
-            }
-        }
-        sum += digits_to_num(&digits);
-        digits.clear();
-    }
-
-    println!("Part One - The calibration value is: {}\n", sum);
-
-    sum = 0;
-
-    let lines: Vec<&str> = file.split("\n").collect();
-    let mut prev_str = String::from("");
-    let mut str_dig: u32;
-
-    for line in lines {
-        chars = line.chars().collect();
-        
-        for ch in chars { 
-            if char::is_numeric(ch) {
-                prev_str = String::from("");         
-                dig_parse = ch.to_digit(10);
-                
-                if dig_parse.is_some() {
-                    dig = dig_parse.unwrap();
-                    digits.push(dig);
-                } else {
-                    panic!("error parsing");
-                }
-
+    for ch in &mut *chars { 
+        if char::is_numeric(*ch) {
+            dig_parse = ch.to_digit(10);
+            
+            if dig_parse.is_some() {
+                dig = dig_parse.unwrap();
+                digits.push(dig);
             } else {
-                prev_str.push(ch);
-                
-                str_dig = word_to_digit2(&prev_str);
-                if str_dig > 0 {
-                    digits.push(str_dig);
-                    prev_str = String::from("");
-                }
+                panic!("error parsing");
             }
-
         }
- 
-        sum += digits_to_num(&digits);
-        digits.clear();
-        prev_str = String::from("");
     }
 
-    println!("Part Two - The calibration value is: {}\n", sum);
+    return digits;
+}
+
+fn process_lines(lines: &Vec<&str>, sum: &mut u32) {
+    let mut chars: Vec<char>; 
+    let mut digits: Vec<u32>;
     
+    for line in lines { 
+        chars = line.chars().collect();
+        digits = digits_from_chars(&mut chars);
+
+        *sum += digits_to_num(&digits);
+        digits.clear();
+    }
+}
+
+fn main() {
+    // Test 1 
+    let mut file = load_file(&String::from("example1.txt")); 
+    replace_nums(&mut file);
+    
+    let lines: Vec<&str> = file.split("\n").collect();
+    let mut sum: u32 = 0;
+    process_lines(&lines, &mut sum);
+    println!("Part One EXAMPLE - The calibration value is: {}\n", sum);
+
+    // Test 2
+    file = load_file(&String::from("example2.txt"));
+    replace_nums(&mut file);
+    
+    sum = 0;
+    let lines: Vec<&str> = file.split("\n").collect();
+    process_lines(&lines, &mut sum);
+    println!("Part Two EXAMPLE - The calibration value is: {}\n", sum);
+    
+    // Solution
+    file = load_file(&String::from("input.txt"));
+    replace_nums(&mut file);
+    
+    sum = 0;
+    let lines: Vec<&str> = file.split("\n").collect();
+    process_lines(&lines, &mut sum);
+    println!("Part Two SOLUTION - The calibration value is: {}\n", sum);
 }
